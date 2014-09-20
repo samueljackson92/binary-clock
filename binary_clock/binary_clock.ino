@@ -1,28 +1,5 @@
 #include <Time.h>
-
-const int stateChangePin = 2;
-const int hourBtnPin = 3;
-const int minBtnPin = 4;
-const int alarmBtnPin = 5;
-const int buzzerPin = 6;
-const int alarmLEDPin = 7;
-
-typedef enum {ALARM_OFF, ALARM_SET, ALARM_RUNNING} alarm_state_t;
-alarm_state_t alarmState = ALARM_OFF;
-
-typedef enum {SHOW_TIME=0, SET_TIME, SET_ALARM} clock_state_t;
-clock_state_t clockState = SHOW_TIME;
-
-typedef struct time_data
-{
-  int hours;
-  int minutes;
-  int seconds;
-} time_data_t;
-
-time_data_t changeClockTimeData;
-time_data_t changeAlarmTimeData;
-time_data_t alarmTime;
+#include "definitions.h"
 
 void resetTimeData(struct time_data timeData)
 {
@@ -33,7 +10,7 @@ void resetTimeData(struct time_data timeData)
 
 bool clockStateChanged()
 {
-  int pinValue = digitalRead(stateChangePin);
+  int pinValue = digitalRead(stateChangeBtnPin);
   if (pinValue == HIGH)
   {
     switch (clockState)
@@ -84,7 +61,7 @@ void printTime()
   int h = hour();
   int m = minute();
   int s = second();
-  
+
   Serial.print(h);
   Serial.print(":");
   Serial.print(m);
@@ -96,15 +73,15 @@ void printTime()
 void setup()
 {
   Serial.begin(9600);
-  
+
   resetTimeData(changeClockTimeData);
   resetTimeData(changeAlarmTimeData);
-  
-  pinMode(stateChangePin, INPUT);
+
+  pinMode(stateChangeBtnPin, INPUT);
   pinMode(hourBtnPin, INPUT);
   pinMode(minBtnPin, INPUT);
   pinMode(alarmBtnPin, INPUT);
-  
+
   pinMode(buzzerPin, OUTPUT);
   pinMode(alarmLEDPin, OUTPUT);
 }
@@ -187,12 +164,12 @@ void loop()
   //& process the current state
   clockStateChanged();
   processClockState();
-  
+
   //check if the state of the alarm has changed
-  //& process the current state 
+  //& process the current state
   alarmStateChanged();
   processAlarmState();
-  
+
   if (clockState != SET_ALARM)
   {
     printTime();
