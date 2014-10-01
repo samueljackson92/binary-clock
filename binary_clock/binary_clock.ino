@@ -20,6 +20,7 @@ bool clockStateChanged()
     {
       case SHOW_TIME:
         clockState = SET_TIME;
+        changeClockTimeData = getCurrentTime();
         break;
       case SET_TIME:
         clockState = SET_ALARM;
@@ -27,6 +28,7 @@ bool clockStateChanged()
         break;
       case SET_ALARM:
         clockState = SHOW_TIME;
+        alarmTime = changeAlarmTimeData;
         resetTimeData(changeAlarmTimeData);
         break;
     }
@@ -83,6 +85,11 @@ void setup()
 
   pinMode(buzzerPin, OUTPUT);
   pinMode(alarmLEDPin, OUTPUT);
+
+  noTone(buzzerPin);
+
+  leds.setBrightness(5);
+  leds.clear();
 }
 
 void changeTimeData(struct time_data &timeData)
@@ -247,25 +254,12 @@ void loop()
   clockStateChanged();
   processClockState();
 
-  //check if the state of the alarm has changed
+  //check if the state of the alarm (on/off) has changed
   //& process the current state
   alarmStateChanged();
   processAlarmState();
 
-  if (clockState != SET_ALARM)
-  {
-    printTime();
-  }
-  else
-  {
-    Serial.print(alarmTime.hours);
-    Serial.print(":");
-    Serial.print(alarmTime.minutes);
-    Serial.print(":");
-    Serial.print(alarmTime.seconds);
-    Serial.print("\n");
-  }
   // pause for a short amount of time.
   // this avoid changing the state multiple times.
-  delay(150);
+  delay(120);
 }

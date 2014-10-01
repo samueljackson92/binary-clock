@@ -1,10 +1,10 @@
 /*
     Definitions.h
-    
+
     Definitions of various data structures and typdefs used in the code.
 */
 
-// constant definitions for the input digital pins used.
+//constant definitions for the input digital pins used.
 const int stateChangeBtnPin = 2;
 const int hourBtnPin = 3;
 const int minBtnPin = 4;
@@ -13,6 +13,9 @@ const int alarmBtnPin = 5;
 //constant definitions for the output digital pin used.
 const int buzzerPin = 6;
 const int alarmLEDPin = 7;
+
+//constant for the buzzer tone
+const int buzzerTone = 500;
 
 //constant definitions for the LED matrix pins used
 const int DIN = 8;
