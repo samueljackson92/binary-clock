@@ -14,6 +14,12 @@ const int alarmBtnPin = 5;
 const int buzzerPin = 6;
 const int alarmLEDPin = 7;
 
+//constant definitions for the LED matrix pins used
+const int DIN = 8;
+const int CS = 9;
+const int CLK = 10;
+const int numberOfLEDChips = 1;
+
 //enum definition to hold the current state of the alarm
 typedef enum {ALARM_OFF, ALARM_SET, ALARM_RUNNING} alarm_state_t;
 alarm_state_t alarmState = ALARM_OFF;
@@ -36,3 +42,6 @@ time_data_t changeClockTimeData;
 time_data_t changeAlarmTimeData;
 //struct to hold the current alarm time
 time_data_t alarmTime;
+
+//Object to control interaction with the LED matrix
+Matrix leds = Matrix(DIN, CLK, CS, numberOfLEDChips);

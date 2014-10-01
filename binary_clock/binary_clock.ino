@@ -1,3 +1,6 @@
+#include <binary.h>
+#include <Sprite.h>
+#include <Matrix.h>
 #include <Time.h>
 #include "definitions.h"
 
@@ -56,17 +59,13 @@ bool alarmStateChanged()
   return false;
 }
 
-void printTime()
+void printTimeToSerial(time_data_t timeData)
 {
-  int h = hour();
-  int m = minute();
-  int s = second();
-
-  Serial.print(h);
+  Serial.print(timeData.hours);
   Serial.print(":");
-  Serial.print(m);
+  Serial.print(timeData.minutes);
   Serial.print(":");
-  Serial.print(s);
+  Serial.print(timeData.seconds);
   Serial.print("\n");
 }
 
@@ -102,6 +101,7 @@ void changeTimeData(struct time_data &timeData)
 
 void setClockTime()
 {
+  showTime(changeClockTimeData);
   changeTimeData(changeClockTimeData);
   setTime(changeClockTimeData.hours,
           changeClockTimeData.minutes,
@@ -111,8 +111,8 @@ void setClockTime()
 
 void setAlarmTime()
 {
+  showTime(changeAlarmTimeData);
   changeTimeData(changeAlarmTimeData);
-  alarmTime = changeAlarmTimeData;
 }
 
 void processClockState()
@@ -120,6 +120,7 @@ void processClockState()
   switch(clockState)
   {
     case SHOW_TIME:
+      showCurrentTime();
       break;
     case SET_TIME:
       setClockTime();
@@ -130,6 +131,18 @@ void processClockState()
   }
 }
 
+void showCurrentTime()
+{
+    time_data_t currentTime = getCurrentTime();
+    showTime(currentTime);
+}
+
+void showTime(time_data_t timeData)
+{
+    printTimeToSerial(timeData);
+    displayTime(timeData);
+}
+
 bool checkRunAlarm()
 {
   return (alarmTime.hours == hour() &&
@@ -137,24 +150,93 @@ bool checkRunAlarm()
           alarmTime.seconds == second());
 }
 
+time_data_t getCurrentTime()
+{
+    time_data_t currentTime;
+    currentTime.seconds = second();
+    currentTime.minutes = minute();
+    currentTime.hours = hour();
+    return currentTime;
+}
+
+void alarmPending()
+{
+    digitalWrite(alarmLEDPin, HIGH);
+    if (checkRunAlarm())
+    {
+      alarmState = ALARM_RUNNING;
+    }
+}
+
+void alarmRunning()
+{
+    digitalWrite(alarmLEDPin, HIGH);
+    tone(buzzerPin, buzzerTone);
+}
+
+void alarmOff()
+{
+    digitalWrite(alarmLEDPin, LOW);
+}
+
 void processAlarmState()
 {
   switch(alarmState)
   {
     case (ALARM_SET):
-      digitalWrite(alarmLEDPin, HIGH);
-      if (checkRunAlarm())
-      {
-        alarmState = ALARM_RUNNING;
-      }
+      alarmPending();
       break;
     case (ALARM_RUNNING):
-      digitalWrite(alarmLEDPin, HIGH);
-      tone(buzzerPin, 500);
+      alarmRunning();
       break;
     case (ALARM_OFF):
-      digitalWrite(alarmLEDPin, LOW);
+      alarmOff();
       break;
+  }
+}
+
+/*
+ * Show a single binary digit on the LED matrix
+ *
+ * @param digit :: the digit to convert to binary.
+ * @param column :: the column of the LED matrix to display it on
+ */
+void showBinaryDigit(int digit, int column)
+{
+    int i = 0;
+    while (digit > 0)
+    {
+        if (digit % 2 == 1)
+        {
+            leds.write((8-i)%8, column, HIGH);
+        }
+        ++i;
+        digit = digit / 2;
+    }
+}
+
+/*
+ * Display some time data on the LED matrix
+ *
+ * @param timeData :: the time data to output to the LED matrix
+ */
+void displayTime(struct time_data timeData)
+{
+  leds.clear();
+
+  const int numberOfTimeComponents = 3;
+  const int timeComponents[3] = {timeData.seconds, timeData.minutes, timeData.hours};
+
+  int column = 0;
+  for (int i=0; i<numberOfTimeComponents; ++i)
+  {
+    int first_digit = timeComponents[i] % 10;
+    int second_digit = timeComponents[i] / 10;
+
+    showBinaryDigit(first_digit, column);
+    showBinaryDigit(second_digit, column+1);
+
+    column+=2;
   }
 }
 
